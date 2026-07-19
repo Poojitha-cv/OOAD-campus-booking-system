@@ -1,119 +1,495 @@
 # Campus Resource Booking & Conflict Resolution System
 
-A Spring Boot web application for booking campus resources (labs, rooms, auditoriums) with built-in conflict detection, waitlist management, and admin arbitration.
+A Spring Boot web application for managing campus resource bookings such as **labs, rooms, and auditoriums**. The system provides resource availability search, booking management, conflict detection and resolution, waitlist management, recurring bookings, notifications, ratings, and administrative controls.
 
-**Tech Stack:** Java 21 · Spring Boot 3.5 · Spring MVC · Spring Data JPA · Thymeleaf · MySQL · Lombok · Maven
+The application was designed and implemented as a complete project by **Poojitha CV**, including the backend services, MVC controllers, database integration, frontend views, conflict management, waitlist functionality, admin features, and implementation of GRASP principles and design patterns.
+
+---
+
+## Tech Stack
+
+- **Java 21**
+- **Spring Boot 3.5**
+- **Spring MVC**
+- **Spring Data JPA**
+- **Thymeleaf**
+- **MySQL**
+- **Lombok**
+- **Maven**
 
 ---
 
 ## MVC Architecture
 
-**Yes** — Spring MVC is used throughout.
+The application follows the **Model-View-Controller (MVC)** architectural pattern using Spring MVC.
 
 | Layer | Implementation |
 |---|---|
-| **Model** | `Booking`, `Resource`, `User`, `WaitlistEntry`, `Notification`, `Rating` (JPA entities) |
-| **View** | Thymeleaf HTML templates (`search.html`, `booking-form.html`, `conflict.html`, `admin-dashboard.html`, etc.) |
-| **Controller** | `BookingController`, `AdminController`, `WaitlistController`, `UserController`, `ResourceController`, `RatingController`, `NotificationController` |
+| **Model** | Booking, Resource, User, WaitlistEntry, Notification, Rating and other JPA entities |
+| **View** | Thymeleaf HTML templates such as `search.html`, `booking-form.html`, `conflict.html`, `admin-dashboard.html`, and other application views |
+| **Controller** | BookingController, AdminController, WaitlistController, UserController, ResourceController, RatingController, NotificationController |
+
+The MVC structure separates presentation, request handling, and business logic, making the application easier to maintain and extend.
 
 ---
 
-## Design Principles (GRASP)
+# Design Principles (GRASP)
 
-### Information Expert → `BookingService`
-`BookingService` owns all the information needed to create and validate a booking — it holds references to `BookingRepository`, `ResourceRepository`, `UserRepository`, and `ConflictDetector`. Because it has the data, it is assigned the responsibility of orchestrating booking creation, conflict checking, and waitlist entry. No other class needs to coordinate this logic.
+The project applies several **GRASP (General Responsibility Assignment Software Patterns)** principles to improve maintainability, cohesion, and coupling between components.
 
-### Low Coupling → `WaitlistService`
-`WaitlistService` depends only on repositories and the `BookingEventObserver` interface — never on concrete controller or service classes. This means cancellation, promotion, and resolution logic can change independently without rippling across the system.
+## Information Expert → BookingService
 
-### High Cohesion → `ReportService`
-`ReportService` has exactly one responsibility: generating admin-facing report data (total bookings, conflict counts, most-booked resource, bookings per resource). It does not touch booking creation, conflict detection, or notifications. `AdminController` delegates all data-gathering to it rather than querying repositories directly.
+`BookingService` is responsible for orchestrating the booking process because it works with the information required to create and validate bookings.
 
----
+It coordinates:
 
-## Design Patterns
+- BookingRepository
+- ResourceRepository
+- UserRepository
+- ConflictDetector
 
-### Factory Method → `ResourceFactory` / `ResourceCreator`
-**Where:** `factory/` package
-
-`ResourceCreator` is the abstract creator defining the factory method `createResource(name)`. Concrete subclasses `LabResourceCreator`, `RoomResourceCreator`, and `AuditoriumResourceCreator` each produce a `Resource` with the correct type and default capacity. `ResourceFactory` picks the right creator by resource type string and delegates object creation. Adding a new resource type requires only a new subclass with zero changes to existing code.
-
-### Observer → `BookingEventObserver` / `NotificationObserver`
-**Where:** `observer/` package
-
-`BookingEventObserver` defines the subject interface with four events: `onBookingConfirmed`, `onBookingCancelled`, `onBookingPromoted`, `onBookingConflict`. `NotificationObserver` is the concrete observer — it persists a `Notification` record to the database for every event. `BookingService` and `WaitlistService` fire events on state changes without knowing anything about how notifications are delivered.
-
-### Strategy → `ConflictResolutionStrategy`
-**Where:** `strategy/` package
-
-`ConflictResolutionStrategy` is the interface with a single method `selectCandidate(queue)`. Three concrete strategies are implemented:
-- `FcfsResolutionStrategy` — picks the earliest waitlist entry (First Come First Served)
-- `PriorityResolutionStrategy` — picks by role priority (Faculty > Admin > Student)
-- `AlternateRoomResolutionStrategy` — finds a free resource of the same type and reassigns the booking
-
-`WaitlistService.resolveWithStrategy()` selects the appropriate strategy at runtime based on the user's choice, with no conditional branching in the caller.
-
-### Decorator → `RecurringBookingDecorator`
-**Where:** `decorator/` package
-
-`RecurringBookingDecorator` wraps `BookingService` without modifying it. When an admin creates a recurring booking, the decorator calls `bookingService.createBooking()` in a loop — once per week for the requested number of weeks — shifting start/end times by 7 days each iteration. Conflict detection and notification still fire normally for each individual booking because the base service is unchanged.
+The service handles booking creation, conflict checking, and related booking operations. This follows the **Information Expert** principle by assigning responsibility to the class that has the information required to perform the operation.
 
 ---
 
-## Team Contributions
+## Low Coupling → WaitlistService
 
-| Member | Feature | Description | Key Classes |
-|---|---|---|---|
-| **Poojitha CV** | Resource Booking | Search & availability screen, calendar view, booking form, confirmation flow | `BookingController`, `search.html`, `booking-form.html`, `confirmation.html` |
-| **Poojitha CV** | Conflict Detection Engine *(shared)* | Overlap query logic, fires conflict response on booking creation | `ConflictDetector`, `ConflictResponse`, `BookingService` |
-| **Poojitha CV** | Registration & Login | User registration, login, session management, role-based redirect | `UserController`, `UserService`, `login.html`, `register.html` |
-| **Poojitha CV** | Conflict UI Screen *(shared)* | Displays both conflicting bookings side by side with winner/loser outcome | `conflict.html` |
-| **Poojitha CV** | GRASP & Pattern | Information Expert → `BookingService` · Factory Method → `ResourceFactory` | `ResourceFactory`, `ResourceCreator`, `LabResourceCreator`, `RoomResourceCreator`, `AuditoriumResourceCreator` |
-| **Podamala Pragna** | Cancellation & Waitlist | Cancel confirmed bookings, auto-promote next waitlisted user (FCFS), queue management | `WaitlistService`, `WaitlistController`, `WaitlistEntry`, `waitlist.html`, `cancel-result.html` |
-| **Podamala Pragna** | Resolution Strategies *(shared)* | Three pluggable conflict resolution strategies selectable at runtime | `FcfsResolutionStrategy`, `PriorityResolutionStrategy`, `AlternateRoomResolutionStrategy`, `resolve-strategy.html` |
-| **Podamala Pragna** | Rating & Feedback | Submit and view ratings for resources after booking | `RatingController`, `Rating`, `RatingRepository`, `rating-form.html`, `resource-ratings.html` |
-| **Podamala Pragna** | Notification System *(shared)* | Observer-based alerts persisted to DB for all booking events (confirmed, cancelled, promoted, conflict) | `NotificationObserver`, `BookingEventObserver`, `Notification`, `notifications.html` |
-| **Podamala Pragna** | GRASP & Pattern | Low Coupling → `WaitlistService` · Observer → `NotificationObserver` | `BookingEventObserver`, `NotificationObserver`, `NotificationRepository` |
-| **Nithya K** | Admin Dashboard + Resource CRUD + Reports | Full admin panel with booking stats, resource add/edit/delete, reports table | `AdminController`, `ReportService`, `admin-dashboard.html`, `admin-reports.html` |
-| **Nithya K** | Winner/Loser Outcome + Admin Arbitration *(shared)* | Admin force-resolves conflicts manually; displays winner and loser outcome | `admin-arbitration.html`, `admin-arbitration-result.html`, `WaitlistService.forceResolve()` |
-| **Nithya K** | Recurring Booking | Decorator-based bulk booking creation — repeats a booking weekly for N weeks | `RecurringBookingDecorator`, `admin-recurring.html`, `admin-recurring-result.html` |
-| **Nithya K** | Admin Arbitration Screen *(shared)* | UI for admin to manually pick winner from conflicting bookings | `admin-arbitration.html` |
-| **Nithya K** | GRASP & Patterns | High Cohesion → `ReportService` · Strategy → `ConflictResolutionStrategy` · Decorator → `RecurringBookingDecorator` | `ReportService`, `ConflictResolutionStrategy`, `RecurringBookingDecorator` |
+`WaitlistService` is designed to minimize dependencies between different parts of the application.
+
+It primarily interacts with repositories and the `BookingEventObserver` abstraction rather than directly depending on concrete controllers or unrelated service implementations.
+
+This allows waitlist management, booking cancellation, promotion, and notification handling to evolve independently, reducing the impact of changes across the system.
 
 ---
 
-## Project Structure
+## High Cohesion → ReportService
 
+`ReportService` has a focused responsibility: generating administrative report data.
+
+It handles information such as:
+
+- Total bookings
+- Conflict counts
+- Most-booked resources
+- Bookings per resource
+
+The reporting logic is separated from booking creation, conflict detection, and notification handling. `AdminController` delegates reporting operations to `ReportService` rather than implementing data-gathering logic directly.
+
+This keeps the responsibilities of each class focused and follows the **High Cohesion** principle.
+
+---
+
+# Design Patterns
+
+The project implements multiple object-oriented design patterns to solve specific design problems within the application.
+
+---
+
+## 1. Factory Method Pattern → ResourceFactory / ResourceCreator
+
+**Package:** `factory/`
+
+The Factory Method pattern is used for creating different types of campus resources.
+
+`ResourceCreator` defines the resource creation abstraction, while concrete creator classes implement resource creation for different resource types:
+
+- `LabResourceCreator`
+- `RoomResourceCreator`
+- `AuditoriumResourceCreator`
+
+`ResourceFactory` selects the appropriate creator based on the requested resource type and delegates the creation process.
+
+This separates object creation logic from the rest of the application and makes it easier to introduce new resource types without significantly modifying existing booking logic.
+
+### Main Classes
+
+```text
+ResourceCreator
+ResourceFactory
+LabResourceCreator
+RoomResourceCreator
+AuditoriumResourceCreator
 ```
+
+---
+
+## 2. Observer Pattern → BookingEventObserver / NotificationObserver
+
+**Package:** `observer/`
+
+The Observer pattern is used to handle booking-related events and notifications.
+
+`BookingEventObserver` defines the event notification abstraction for events such as:
+
+- Booking confirmed
+- Booking cancelled
+- Booking promoted
+- Booking conflict detected
+
+`NotificationObserver` acts as a concrete observer and persists notification records in the database.
+
+Booking-related services can trigger events without being tightly coupled to the implementation details of notification delivery.
+
+### Main Classes
+
+```text
+BookingEventObserver
+NotificationObserver
+Notification
+NotificationRepository
+```
+
+This design allows additional observers or event-handling mechanisms to be introduced in the future without significantly changing the core booking logic.
+
+---
+
+## 3. Strategy Pattern → ConflictResolutionStrategy
+
+**Package:** `strategy/`
+
+The Strategy pattern is used to support multiple conflict-resolution approaches.
+
+`ConflictResolutionStrategy` defines a common interface for selecting or resolving booking conflicts.
+
+The project implements three strategies:
+
+### FCFS Resolution
+
+`FcfsResolutionStrategy`
+
+Selects the earliest eligible waitlist entry based on **First Come First Served (FCFS)** ordering.
+
+### Priority Resolution
+
+`PriorityResolutionStrategy`
+
+Resolves conflicts based on user role priority, such as:
+
+```text
+Faculty > Admin > Student
+```
+
+### Alternate Room Resolution
+
+`AlternateRoomResolutionStrategy`
+
+Attempts to identify an available resource of the same type and reassign the booking when possible.
+
+The strategy can be selected at runtime, allowing the conflict-resolution algorithm to change without modifying the core booking and waitlist logic.
+
+### Main Classes
+
+```text
+ConflictResolutionStrategy
+FcfsResolutionStrategy
+PriorityResolutionStrategy
+AlternateRoomResolutionStrategy
+```
+
+---
+
+## 4. Decorator Pattern → RecurringBookingDecorator
+
+**Package:** `decorator/`
+
+The Decorator pattern is used to extend the booking service with recurring booking functionality.
+
+`RecurringBookingDecorator` wraps the existing `BookingService` and adds the ability to create recurring bookings without modifying the underlying booking service implementation.
+
+For a recurring booking, the decorator:
+
+1. Receives the booking details.
+2. Creates the initial booking.
+3. Shifts the booking dates by seven days.
+4. Repeats the booking process for the requested number of weeks.
+5. Uses the existing booking service for each individual booking.
+
+Because the original `BookingService` remains unchanged, existing conflict detection and notification behavior can continue to operate for each booking.
+
+### Main Classes
+
+```text
+RecurringBookingDecorator
+BookingService
+```
+
+---
+
+# Key Features
+
+## User Features
+
+- User registration and login
+- Session management
+- Role-based access
+- Search for campus resources
+- View resource availability
+- Calendar-based booking interface
+- Create bookings
+- View booking confirmation
+- Cancel bookings
+- Join waitlists
+- Receive booking notifications
+- Rate resources
+- View resource ratings
+
+---
+
+## Booking and Conflict Management
+
+- Resource availability checking
+- Booking overlap detection
+- Conflict identification
+- Conflict outcome handling
+- Winner and loser booking outcomes
+- Multiple conflict-resolution strategies
+- FCFS conflict resolution
+- Priority-based conflict resolution
+- Alternate-room resolution
+- Waitlist management
+- Automatic waitlist promotion
+
+---
+
+## Recurring Bookings
+
+The system supports recurring bookings using the **Decorator design pattern**.
+
+Administrators can create bookings that repeat weekly for a specified number of weeks.
+
+Each generated booking is processed through the existing booking workflow, allowing normal validation and conflict detection to be applied.
+
+---
+
+## Notification System
+
+The application implements an **Observer-based notification system**.
+
+Notifications are generated for important booking events, including:
+
+- Booking confirmation
+- Booking cancellation
+- Waitlist promotion
+- Booking conflict
+
+Notifications are persisted in the database and can be accessed through the notification interface.
+
+---
+
+## Rating and Feedback
+
+Users can submit ratings for resources after completing bookings.
+
+The system provides:
+
+- Resource rating submission
+- Rating persistence
+- Resource rating retrieval
+- Average rating information
+
+---
+
+## Admin Features
+
+The administrative dashboard provides functionality for:
+
+- Viewing booking statistics
+- Managing campus resources
+- Adding resources
+- Editing resources
+- Deleting resources
+- Viewing reports
+- Resolving conflicts manually
+- Selecting conflict winners
+- Managing recurring bookings
+- Viewing booking and resource information
+
+---
+
+# Project Structure
+
+```text
 src/main/java/com/campus/booking/
+│
 ├── controller/       # MVC Controllers
-├── service/          # Business logic (BookingService, WaitlistService, ReportService, ...)
+│
+├── service/          # Business logic
+│   ├── BookingService
+│   ├── WaitlistService
+│   ├── ReportService
+│   └── Other Services
+│
 ├── model/            # JPA Entities
+│
 ├── repository/       # Spring Data JPA Repositories
-├── factory/          # Factory Method pattern
-├── observer/         # Observer pattern
-├── strategy/         # Strategy pattern
-├── decorator/        # Decorator pattern
-└── config/           # DataLoader, WebMvcConfig
+│
+├── factory/          # Factory Method Pattern
+│
+├── observer/         # Observer Pattern
+│
+├── strategy/         # Strategy Pattern
+│
+├── decorator/        # Decorator Pattern
+│
+└── config/           # Application configuration and data loading
+```
+
+```text
 src/main/resources/
-├── templates/        # Thymeleaf HTML views
+│
+├── templates/        # Thymeleaf HTML Views
+│
 └── application.properties
 ```
 
 ---
 
-## Setup & Run
+# Design Overview
 
-**Prerequisites:** Java 21, Maven, MySQL
+The overall application architecture can be summarized as:
+
+```text
+                         ┌─────────────────────┐
+                         │       Users         │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │   Spring MVC        │
+                         │   Controllers       │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │     Services        │
+                         │ BookingService      │
+                         │ WaitlistService     │
+                         │ ReportService       │
+                         └──────────┬──────────┘
+                                    │
+                 ┌──────────────────┼──────────────────┐
+                 │                  │                  │
+                 ▼                  ▼                  ▼
+          ┌────────────┐    ┌──────────────┐   ┌──────────────┐
+          │  Factory   │    │   Strategy   │   │  Decorator   │
+          │  Pattern   │    │   Pattern    │   │   Pattern    │
+          └────────────┘    └──────────────┘   └──────────────┘
+                 │                  │                  │
+                 └──────────────────┼──────────────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │     Repositories    │
+                         │   Spring Data JPA   │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │       MySQL         │
+                         └─────────────────────┘
+
+                         Observer Pattern
+                                │
+                                ▼
+                         ┌─────────────────────┐
+                         │   Notifications     │
+                         └─────────────────────┘
+```
+
+---
+
+# Implementation Highlights
+
+The project demonstrates practical application of:
+
+- Object-Oriented Design
+- SOLID-oriented design practices
+- GRASP principles
+- MVC architecture
+- Factory Method Pattern
+- Observer Pattern
+- Strategy Pattern
+- Decorator Pattern
+- Service Layer Architecture
+- Repository Pattern through Spring Data JPA
+- Role-based access control
+- Database-driven application development
+
+The design separates responsibilities across controllers, services, repositories, and domain models while using design patterns where they provide clear architectural value.
+
+---
+
+# Setup & Run
+
+## Prerequisites
+
+Make sure the following are installed:
+
+- Java 21
+- Maven
+- MySQL
+
+---
+
+## 1. Create the Database
+
+Open MySQL and execute:
 
 ```sql
 CREATE DATABASE campus_booking;
 ```
 
-Update `src/main/resources/application.properties` with your MySQL credentials, then:
+---
+
+## 2. Configure Database Credentials
+
+Update:
+
+```text
+src/main/resources/application.properties
+```
+
+with your MySQL credentials.
+
+Example:
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/campus_booking
+spring.datasource.username=root
+spring.datasource.password=YOUR_PASSWORD
+
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+spring.jpa.properties.hibernate.globally_quoted_identifiers=true
+```
+
+---
+
+## 3. Run the Application
+
+From the project root directory, run:
 
 ```bash
 mvn spring-boot:run
 ```
 
-Access at `http://localhost:8080`. Default admin credentials are seeded by `DataLoader` on first run.
+---
+
+## 4. Access the Application
+
+Open:
+
+```text
+http://localhost:8080
+```
+
+The default administrator account is seeded by `DataLoader` during the initial application startup.
+
+---
+
+# Author
+
+**Poojitha CV**
+
+This project was designed and implemented as a complete **Campus Resource Booking and Conflict Resolution System**, demonstrating practical application of Spring Boot, MVC architecture, database integration, GRASP principles, and object-oriented design patterns.
