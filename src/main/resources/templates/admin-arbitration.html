@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>CampusBook — Admin Arbitration</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #05080f; --surface: #0d1220; --card: #101828;
+    --border: #1e2d45; --accent: #00d4ff; --accent2: #7c3aed;
+    --text: #e8f0fe; --muted: #64748b;
+    --success: #10b981; --warning: #f59e0b; --danger: #f43f5e;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(5,8,15,0.9); backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px; height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; }
+  .brand span { color: var(--accent); }
+  .nav-links { display: flex; gap: 12px; }
+  .nav-links a { color: var(--accent); text-decoration: none; font-size: 13px;
+    padding: 6px 14px; border: 1px solid rgba(0,212,255,0.25); border-radius: 20px; }
+  main { max-width: 960px; margin: 0 auto; padding: 48px 24px; }
+  h1 { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
+  h1 span { color: var(--danger); }
+  .sub { color: var(--muted); font-size: 14px; margin-bottom: 36px; }
+
+  .empty-state { background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 64px; text-align: center; color: var(--muted); }
+
+  .conflict-card {
+    background: var(--surface); border: 1px solid rgba(245,158,11,0.3);
+    border-radius: 16px; padding: 28px; margin-bottom: 24px;
+  }
+  .conflict-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .conflict-id { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--warning); }
+
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .info-item { background: var(--card); border-radius: 10px; padding: 14px; }
+  .info-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); margin-bottom: 6px; }
+  .info-val { font-size: 14px; font-weight: 500; }
+
+  /* Resolve form */
+  .resolve-form { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .resolve-form h4 { font-family: 'Syne', sans-serif; margin-bottom: 16px; font-size: 14px; color: var(--accent); }
+  .form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+  select, input[type=number] {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); padding: 8px 12px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+  }
+  .btn-resolve {
+    padding: 10px 22px; background: linear-gradient(135deg, var(--success), #059669);
+    border: none; border-radius: 8px; color: #fff;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer;
+  }
+  .pill-CONFLICT { display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600; background: rgba(245,158,11,0.12); color: var(--warning); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">Campus<span>Book</span> <small style="color:var(--muted);font-size:12px;">Admin</small></div>
+  <div class="nav-links">
+    <a th:href="@{/admin/dashboard}">← Dashboard</a>
+    <a href="/logout" style="color:#f43f5e;border-color:rgba(244,63,94,0.25);">Logout</a>
+  </div>
+</nav>
+
+<main>
+  <h1>Conflict <span>Arbitration</span></h1>
+  <p class="sub">Force-resolve booking conflicts manually. Choose the winner — the loser gets cancelled and the next waitlisted user is promoted.</p>
+
+  <!-- Empty state -->
+  <div class="empty-state" th:if="${#lists.isEmpty(conflictBookings)}">
+    <div style="font-size:3rem;margin-bottom:12px;">✅</div>
+    <p>No conflicts in the system right now. All clear!</p>
+  </div>
+
+  <!-- One card per conflict booking -->
+  <div th:each="b : ${conflictBookings}" class="conflict-card">
+    <div class="conflict-header">
+      <div class="conflict-id">⚡ Conflict Booking #<span th:text="${b.id}"></span></div>
+      <span class="pill-CONFLICT">CONFLICT</span>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-item">
+        <div class="info-label">User</div>
+        <div class="info-val" th:text="${b.user.name}"></div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Role</div>
+        <div class="info-val" th:text="${b.user.role}"></div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Resource</div>
+        <div class="info-val" th:text="${b.resource.name}"></div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Purpose</div>
+        <div class="info-val" th:text="${b.purpose != null ? b.purpose : '—'}"></div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Start Time</div>
+        <div class="info-val" th:text="${b.startTime}"></div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">End Time</div>
+        <div class="info-val" th:text="${b.endTime}"></div>
+      </div>
+    </div>
+
+    <!-- Force-resolve form -->
+    <div class="resolve-form">
+      <h4>🔧 Admin Force-Resolve</h4>
+      <form th:action="@{/admin/conflicts/resolve}" method="post">
+        <!-- The conflict booking is the loser by default -->
+        <input type="hidden" name="loserId" th:value="${b.id}" />
+        <div class="form-row">
+          <div>
+            <label>Winner Booking ID (type the CONFIRMED booking ID)</label>
+            <input type="number" name="winnerId" placeholder="e.g. 3" required />
+          </div>
+          <div>
+            <label>Resolution Strategy</label>
+            <select name="strategy">
+              <option value="FCFS">FCFS — First Come First Served</option>
+              <option value="PRIORITY">PRIORITY — Faculty First</option>
+              <option value="ALTERNATE">ALTERNATE — Suggest Another Room</option>
+            </select>
+          </div>
+          <div>
+            <button type="submit" class="btn-resolve">Force Resolve →</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>CampusBook — My Bookings</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #05080f; --surface: #0d1220; --card: #101828;
+    --border: #1e2d45; --accent: #00d4ff; --accent2: #7c3aed;
+    --text: #e8f0fe; --muted: #64748b;
+    --success: #10b981; --warning: #f59e0b; --danger: #f43f5e;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 70% 40% at 50% 0%, rgba(0,212,255,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(5,8,15,0.85); backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 48px; height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+  .nav-logo-icon {
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .nav-brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; }
+  .nav-brand span { color: var(--accent); }
+  .nav-actions { display: flex; align-items: center; gap: 12px; }
+  .nav-link {
+    color: var(--accent); text-decoration: none; font-size: 13px;
+    padding: 6px 14px; border: 1px solid rgba(0,212,255,0.25); border-radius: 20px;
+    transition: background 0.2s;
+  }
+  .nav-link:hover { background: rgba(0,212,255,0.08); }
+  .nav-link.danger { color: var(--danger); border-color: rgba(244,63,94,0.25); }
+  .nav-link.danger:hover { background: rgba(244,63,94,0.08); }
+
+  main { max-width: 900px; margin: 0 auto; padding: 48px 24px; position: relative; z-index: 1; }
+
+  .page-title { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+  .page-title span { color: var(--accent); }
+  .page-sub { color: var(--muted); font-size: 15px; margin-bottom: 36px; }
+
+  .empty-state {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 64px 32px; text-align: center;
+  }
+  .empty-icon { font-size: 3rem; margin-bottom: 16px; }
+  .empty-state p { color: var(--muted); margin-bottom: 24px; }
+  .btn-accent {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #05080f; font-weight: 700; padding: 10px 24px;
+    border-radius: 10px; text-decoration: none; font-size: 14px;
+  }
+
+  .booking-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 24px 28px; margin-bottom: 16px;
+    display: flex; justify-content: space-between; align-items: center; gap: 20px;
+    border-left: 4px solid var(--border); transition: box-shadow 0.2s;
+  }
+  .booking-card:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.3); }
+  .booking-card.CONFIRMED { border-left-color: var(--success); }
+  .booking-card.CANCELLED  { border-left-color: var(--danger); opacity: 0.65; }
+  .booking-card.CONFLICT   { border-left-color: var(--warning); }
+  .booking-card.PENDING    { border-left-color: var(--muted); }
+
+  .card-info h3 { font-family: 'Syne', sans-serif; font-size: 1.05rem; margin-bottom: 8px; }
+  .card-meta { display: flex; gap: 20px; flex-wrap: wrap; }
+  .meta-item { font-size: 13px; color: var(--muted); }
+  .meta-item span { color: var(--text); font-weight: 500; }
+
+  .card-right { display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
+
+  .badge {
+    border-radius: 20px; padding: 4px 14px; font-size: 12px; font-weight: 700;
+    letter-spacing: 0.5px; white-space: nowrap;
+  }
+  .badge-CONFIRMED { background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
+  .badge-CANCELLED  { background: rgba(244,63,94,0.12); color: var(--danger); border: 1px solid rgba(244,63,94,0.25); }
+  .badge-CONFLICT   { background: rgba(245,158,11,0.12); color: var(--warning); border: 1px solid rgba(245,158,11,0.25); }
+  .badge-PENDING    { background: rgba(100,116,139,0.15); color: var(--muted); border: 1px solid rgba(100,116,139,0.25); }
+
+  .btn-cancel {
+    background: rgba(244,63,94,0.1); color: var(--danger);
+    border: 1px solid rgba(244,63,94,0.3); cursor: pointer;
+    padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    transition: background 0.2s;
+  }
+  .btn-cancel:hover { background: rgba(244,63,94,0.2); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="/resource/all">
+    <div class="nav-logo-icon">🏛️</div>
+    <div class="nav-brand">Campus<span>Book</span></div>
+  </a>
+  <div class="nav-actions">
+    <a href="/resource/all" class="nav-link">Browse Resources</a>
+    <a href="/waitlist/my" class="nav-link">⏳ Waitlist</a>
+    <a href="/notifications" class="nav-link">🔔 Alerts</a>
+    <a href="/logout" class="nav-link danger">Logout</a>
+  </div>
+</nav>
+
+<main>
+  <div class="page-title">My <span>Bookings</span></div>
+  <div class="page-sub">View and manage all your resource bookings.</div>
+
+  <div th:each="b : ${bookings}"
+       th:classappend="${b.status}"
+       class="booking-card">
+
+    <div class="card-info">
+      <h3 th:text="${b.resource.name}">Resource Name</h3>
+      <div class="card-meta">
+        <div class="meta-item">📅 <span th:text="${#temporals.format(b.startTime, 'dd MMM yyyy, HH:mm')}"></span></div>
+        <div class="meta-item">⏰ to <span th:text="${#temporals.format(b.endTime, 'HH:mm')}"></span></div>
+      </div>
+    </div>
+
+    <div class="card-right">
+  <span class="badge"
+        th:classappend="'badge-' + ${b.status}"
+        th:text="${b.status}">STATUS</span>
+
+  <!-- ✅ ONLY for CONFIRMED → Cancel -->
+  <div th:if="${b.status == 'CONFIRMED'}"
+       style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+    <form th:action="@{/waitlist/cancel/{id}(id=${b.id})}"
+          method="post"
+          onsubmit="return confirm('Cancel this booking? This will free the slot.')">
+      <button type="submit" class="btn-cancel">Cancel Booking</button>
+    </form>
+  </div>
+
+  <!-- ✅ ONLY for CONFLICT → Resolve -->
+  <div th:if="${b.status == 'CONFLICT'}"
+       style="margin-top:8px;">
+    <a th:href="@{/waitlist/resolve-screen/{id}(id=${b.id})}"
+       style="display:inline-block; padding:7px 14px;
+              background:rgba(124,58,237,0.1); color:#a78bfa;
+              border:1px solid rgba(124,58,237,0.3); border-radius:8px;
+              font-size:13px; font-weight:600; text-decoration:none;">
+      ⚡ Resolve Conflict
+    </a>
+  </div>
+
+  <!-- Rating -->
+  <a th:if="${b.status == 'CANCELLED' or b.status == 'CONFIRMED'}"
+     th:href="@{/rating/form/{id}(id=${b.id})}"
+     style="display:inline-block; margin-top:8px; padding:7px 16px;
+            background:rgba(245,158,11,0.1); color:#f59e0b;
+            border:1px solid rgba(245,158,11,0.3); border-radius:8px;
+            font-size:13px; font-weight:600; text-decoration:none;">
+    ⭐ Rate
+  </a>
+</div>
+  </div>
+</main>
+
+</body>
+</html>

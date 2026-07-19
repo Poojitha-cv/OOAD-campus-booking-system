@@ -28,4 +28,7 @@ public class ResourceService {
     public List<Resource> searchByType(String type) {
         return resourceRepository.findByType(type);
     }
+    public void deleteResource(Long id) {
+    resourceRepository.deleteById(id);
+}
 }

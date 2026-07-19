@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>CampusBook — Rate Your Booking</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #05080f; --surface: #0d1220; --card: #101828;
+    --border: #1e2d45; --accent: #00d4ff; --accent2: #7c3aed;
+    --text: #e8f0fe; --muted: #64748b;
+    --success: #10b981; --warning: #f59e0b;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif;
+         min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+         justify-content: center; padding: 32px; }
+  body::before { content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(0,212,255,0.04) 0%, transparent 65%);
+    pointer-events: none; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+          padding: 48px 44px; max-width: 520px; width: 100%; position: relative; z-index: 1; }
+
+  h1 { font-family: 'Syne', sans-serif; font-size: 1.7rem; font-weight: 800; margin-bottom: 6px; }
+  h1 span { color: var(--accent); }
+  .sub { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+
+  .booking-info { background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+                  padding: 14px 18px; margin-bottom: 28px; font-size: 14px; }
+  .booking-info p { color: var(--muted); margin-bottom: 4px; }
+  .booking-info p span { color: var(--text); font-weight: 500; }
+
+  .label { font-size: 13px; color: var(--muted); margin-bottom: 10px; display: block; font-weight: 500; }
+
+  /* Star rating UI */
+  .stars-row { display: flex; gap: 10px; margin-bottom: 24px; }
+  .stars-row input[type="radio"] { display: none; }
+  .stars-row label {
+    font-size: 2rem; cursor: pointer; color: var(--border);
+    transition: color 0.15s, transform 0.1s;
+  }
+  .stars-row input[type="radio"]:checked ~ label { color: var(--border); }
+  .stars-row label:hover,
+  .stars-row label:hover ~ label { color: var(--border); }
+  /* Forward sibling trick — stars fill left to right */
+  .stars-row { flex-direction: row-reverse; justify-content: flex-end; }
+  .stars-row label:hover,
+  .stars-row input[type="radio"]:checked + label,
+  .stars-row label:has(~ input[type="radio"]:checked) { color: var(--warning) !important; }
+
+  textarea {
+    width: 100%; background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 14px; padding: 12px 14px; resize: vertical; min-height: 100px;
+    margin-bottom: 24px; outline: none;
+  }
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--muted); }
+
+  .btn-submit {
+    width: 100%; padding: 13px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #05080f; font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 15px; border: none; border-radius: 10px; cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-submit:hover { opacity: 0.9; }
+
+  .back { display: block; text-align: center; margin-top: 16px;
+          color: var(--muted); font-size: 13px; text-decoration: none; }
+  .back:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Rate Your <span>Experience</span></h1>
+  <p class="sub">Your feedback helps improve campus resources for everyone.</p>
+
+  <div class="booking-info">
+    <p>🏛️ Resource: <span th:text="${booking.resource.name}">Resource</span></p>
+    <p>📅 Date: <span th:text="${#temporals.format(booking.startTime, 'dd MMM yyyy, HH:mm')}"></span>
+       — <span th:text="${#temporals.format(booking.endTime, 'HH:mm')}"></span></p>
+    <p>🏷️ Type: <span th:text="${booking.resource.type}"></span></p>
+  </div>
+
+  <form th:action="@{/rating/submit}" method="post">
+    <input type="hidden" name="bookingId" th:value="${booking.id}" />
+
+    <span class="label">Your Rating *</span>
+    <div class="stars-row">
+      <input type="radio" name="stars" id="s5" value="5" /><label for="s5">★</label>
+      <input type="radio" name="stars" id="s4" value="4" /><label for="s4">★</label>
+      <input type="radio" name="stars" id="s3" value="3" checked /><label for="s3">★</label>
+      <input type="radio" name="stars" id="s2" value="2" /><label for="s2">★</label>
+      <input type="radio" name="stars" id="s1" value="1" /><label for="s1">★</label>
+    </div>
+
+    <span class="label">Comments (optional)</span>
+    <textarea name="comment" placeholder="Share your experience — was the room clean, equipment working, booking process smooth?"></textarea>
+
+    <button type="submit" class="btn-submit">Submit Feedback ✓</button>
+  </form>
+  <a href="/booking/my" class="back">← Back to My Bookings</a>
+</div>
+</body>
+</html>

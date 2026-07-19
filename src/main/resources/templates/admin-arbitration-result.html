@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>CampusBook — Arbitration Result</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #05080f; --surface: #0d1220; --card: #101828;
+    --border: #1e2d45; --accent: #00d4ff;
+    --text: #e8f0fe; --muted: #64748b;
+    --success: #10b981; --danger: #f43f5e; --warning: #f59e0b;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif;
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 32px; }
+  .card { background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 48px 44px; max-width: 640px; width: 100%; }
+  h1 { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; }
+  .sub { color: var(--muted); font-size: 14px; margin-bottom: 36px; }
+
+  .versus { display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center; margin-bottom: 32px; }
+  .side { background: var(--card); border-radius: 14px; padding: 20px; }
+  .side.winner { border: 1px solid var(--success); box-shadow: 0 0 20px rgba(16,185,129,0.1); }
+  .side.loser { border: 1px solid rgba(244,63,94,0.3); opacity: 0.7; }
+  .side-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+  .winner .side-label { color: var(--success); }
+  .loser .side-label { color: var(--danger); }
+  .side h3 { font-family: 'Syne', sans-serif; font-size: 1rem; margin-bottom: 6px; }
+  .side p { color: var(--muted); font-size: 13px; }
+  .vs { width: 44px; height: 44px; border-radius: 50%; background: rgba(124,58,237,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 13px; color: #a78bfa; }
+
+  .result-box { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 24px; text-align: center; }
+  .result-box p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+  .strategy-badge {
+    display: inline-block; margin-top: 12px; padding: 5px 14px;
+    background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2);
+    border-radius: 20px; font-size: 12px; color: #a78bfa;
+  }
+  .actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary {
+    padding: 12px 24px; background: linear-gradient(135deg, var(--accent), #0099cc);
+    border: none; border-radius: 10px; color: #05080f;
+    font-family: 'Syne', sans-serif; font-weight: 700; cursor: pointer; text-decoration: none;
+  }
+  .btn-ghost {
+    padding: 12px 24px; background: transparent; border: 1px solid var(--border);
+    border-radius: 10px; color: var(--muted); text-decoration: none; font-size: 14px;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>⚖️ Arbitration Complete</h1>
+  <p class="sub">Admin force-resolve applied. Winner confirmed, loser cancelled.</p>
+
+  <div class="versus">
+    <!-- Winner -->
+    <div class="side winner">
+      <div class="side-label">🏆 Winner</div>
+      <h3 th:text="${winner.user.name}"></h3>
+      <p th:text="${winner.resource.name}"></p>
+      <p th:text="${winner.startTime + ' → ' + winner.endTime}"></p>
+    </div>
+
+    <div class="vs">VS</div>
+
+    <!-- Loser -->
+    <div class="side loser">
+      <div class="side-label">❌ Loser</div>
+      <h3 th:text="${loser.user.name}"></h3>
+      <p th:text="${loser.resource.name}"></p>
+      <p th:text="${loser.startTime + ' → ' + loser.endTime}"></p>
+    </div>
+  </div>
+
+  <div class="result-box">
+    <p th:text="${promoteResult}"></p>
+    <div class="strategy-badge">Strategy: <span th:text="${strategy}"></span></div>
+  </div>
+
+  <div class="actions">
+    <a th:href="@{/admin/conflicts}" class="btn-primary">Back to Conflicts</a>
+    <a th:href="@{/admin/dashboard}" class="btn-ghost">Dashboard</a>
+  </div>
+</div>
+</body>
+</html>

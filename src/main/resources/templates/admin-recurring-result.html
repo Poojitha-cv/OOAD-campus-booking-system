@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>CampusBook — Recurring Result</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #05080f; --surface: #0d1220; --card: #101828;
+    --border: #1e2d45; --accent: #00d4ff; --accent2: #7c3aed;
+    --text: #e8f0fe; --muted: #64748b;
+    --success: #10b981; --warning: #f59e0b;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif;
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 32px; }
+  .card { background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 48px 44px; max-width: 560px; width: 100%; }
+  h1 { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; margin-bottom: 6px; }
+  h1 span { color: var(--accent); }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 32px; }
+
+  .result-item {
+    background: var(--card); border-radius: 10px; padding: 14px 18px;
+    margin-bottom: 10px; font-size: 14px;
+    border-left: 4px solid var(--border);
+  }
+  .result-item.ok  { border-left-color: var(--success); }
+  .result-item.conflict { border-left-color: var(--warning); }
+
+  .actions { display: flex; gap: 12px; margin-top: 28px; }
+  .btn-primary { padding: 12px 24px; background: linear-gradient(135deg, var(--accent), #0099cc);
+    border: none; border-radius: 10px; color: #05080f;
+    font-family: 'Syne', sans-serif; font-weight: 700; text-decoration: none; }
+  .btn-ghost { padding: 12px 24px; background: transparent; border: 1px solid var(--border);
+    border-radius: 10px; color: var(--muted); text-decoration: none; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🔁 Recurring <span>Results</span></h1>
+  <p class="sub" th:text="${weeks} + ' weekly bookings processed by RecurringBookingDecorator.'"></p>
+
+  <div th:each="r : ${results}"
+       class="result-item"
+       th:classappend="${r.contains('CONFLICT')} ? 'conflict' : 'ok'"
+       th:text="${r}">
+  </div>
+
+  <div class="actions">
+    <a th:href="@{/admin/dashboard}" class="btn-primary">Back to Dashboard</a>
+    <a th:href="@{/admin/recurring}" class="btn-ghost">Create More</a>
+  </div>
+</div>
+</body>
+</html>

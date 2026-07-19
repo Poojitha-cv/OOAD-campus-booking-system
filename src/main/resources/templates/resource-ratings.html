@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>CampusBook — Resource Reviews</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #05080f; --surface: #0d1220; --card: #101828;
+    --border: #1e2d45; --accent: #00d4ff; --accent2: #7c3aed;
+    --text: #e8f0fe; --muted: #64748b; --warning: #f59e0b;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(5,8,15,0.85); backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 48px; height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+  .nav-logo-icon { width: 34px; height: 34px; background: linear-gradient(135deg, var(--accent), var(--accent2));
+                   border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .nav-brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; }
+  .nav-brand span { color: var(--accent); }
+  .nav-link { color: var(--accent); text-decoration: none; font-size: 13px;
+              padding: 6px 14px; border: 1px solid rgba(0,212,255,0.25); border-radius: 20px; }
+
+  main { max-width: 760px; margin: 0 auto; padding: 48px 24px; }
+
+  .page-title { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
+  .page-title span { color: var(--warning); }
+  .page-sub { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
+
+  .avg-box { background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+             padding: 20px 28px; margin-bottom: 32px; display: flex; align-items: center; gap: 20px; }
+  .avg-stars { font-size: 2.5rem; color: var(--warning); }
+  .avg-text { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; }
+  .avg-label { color: var(--muted); font-size: 13px; }
+
+  .review-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+                 padding: 20px 24px; margin-bottom: 14px; }
+  .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .reviewer { font-weight: 600; font-size: 14px; }
+  .review-date { color: var(--muted); font-size: 12px; }
+  .review-stars { color: var(--warning); font-size: 1.1rem; margin-bottom: 8px; }
+  .review-comment { font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .review-comment.empty { font-style: italic; }
+
+  .empty-state { background: var(--surface); border: 1px solid var(--border);
+                 border-radius: 16px; padding: 48px; text-align: center; color: var(--muted); }
+</style>
+</head>
+<body>
+<nav>
+  <a class="nav-logo" href="/resource/all">
+    <div class="nav-logo-icon">🏛️</div>
+    <div class="nav-brand">Campus<span>Book</span></div>
+  </a>
+  <div style="display:flex;gap:12px;">
+    <a href="/booking/my" class="nav-link">📋 My Bookings</a>
+    <a href="/resource/all" class="nav-link">Browse Resources</a>
+  </div>
+</nav>
+
+<main>
+  <div class="page-title">⭐ <span th:text="${resource.name}">Resource</span> Reviews</div>
+  <div class="page-sub" th:text="'Type: ' + ${resource.type}"></div>
+
+  <div class="avg-box">
+    <div class="avg-stars">⭐</div>
+    <div>
+      <div class="avg-text" th:text="${avgStars}">4.5</div>
+      <div class="avg-label" th:text="${#lists.size(ratings)} + ' review(s)'">0 reviews</div>
+    </div>
+  </div>
+
+  <div class="empty-state" th:if="${#lists.isEmpty(ratings)}">
+    <p>No reviews yet for this resource. Be the first to rate it!</p>
+  </div>
+
+  <div th:each="r : ${ratings}" class="review-card">
+    <div class="review-header">
+      <span class="reviewer" th:text="${r.user.name}">User</span>
+      <span class="review-date" th:text="${#temporals.format(r.createdAt, 'dd MMM yyyy')}"></span>
+    </div>
+    <div class="review-stars"
+         th:text="${'★'.repeat(r.stars) + '☆'.repeat(5 - r.stars)}">★★★★☆</div>
+    <div class="review-comment"
+         th:classappend="${r.comment == null or r.comment.isEmpty()} ? 'empty' : ''"
+         th:text="${r.comment != null and !r.comment.isEmpty()} ? r.comment : 'No comment provided.'">
+    </div>
+  </div>
+</main>
+</body>
+</html>

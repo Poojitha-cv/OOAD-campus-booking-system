@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>CampusBook — Recurring Booking</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #05080f; --surface: #0d1220; --card: #101828;
+    --border: #1e2d45; --accent: #00d4ff; --accent2: #7c3aed;
+    --text: #e8f0fe; --muted: #64748b;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif;
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 32px; }
+  .card { background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 48px 44px; max-width: 540px; width: 100%; }
+  h1 { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; margin-bottom: 6px; }
+  h1 span { color: var(--accent2); }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 32px; line-height: 1.6; }
+  .pattern-note { background: rgba(124,58,237,0.07); border: 1px solid rgba(124,58,237,0.2);
+    border-radius: 10px; padding: 12px 16px; font-size: 12px; color: #a78bfa; margin-bottom: 28px; }
+
+  .field { margin-bottom: 18px; }
+  label { display: block; font-size: 12px; color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.6px; margin-bottom: 6px; }
+  input, select {
+    width: 100%; background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); padding: 11px 14px;
+    font-size: 14px; font-family: 'DM Sans', sans-serif;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--accent); }
+  .btn {
+    width: 100%; padding: 14px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    border: none; border-radius: 10px; color: #fff;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px;
+    cursor: pointer; margin-top: 8px;
+  }
+  .back { display: block; text-align: center; margin-top: 20px;
+    color: var(--muted); font-size: 13px; text-decoration: none; }
+  .back:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🔁 Recurring <span>Booking</span></h1>
+  <p class="sub">Bulk-create weekly bookings for the same time slot. Each week is booked automatically using the Decorator pattern.</p>
+
+  <div class="pattern-note">🎨 <strong>Decorator Pattern:</strong> RecurringBookingDecorator wraps BookingService and calls createBooking() repeatedly, shifting by 7 days each time.</div>
+
+  <form th:action="@{/admin/recurring/create}" method="post">
+    <div class="field">
+      <label>Resource</label>
+      <select name="resourceId" required>
+        <option th:each="r : ${resources}" th:value="${r.id}" th:text="${r.name + ' (' + r.type + ')'}"></option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Start Date &amp; Time</label>
+      <input type="datetime-local" name="startTime" required />
+    </div>
+    <div class="field">
+      <label>End Date &amp; Time</label>
+      <input type="datetime-local" name="endTime" required />
+    </div>
+    <div class="field">
+      <label>Purpose</label>
+      <input type="text" name="purpose" placeholder="e.g. Weekly CS Lab Session" required />
+    </div>
+    <div class="field">
+      <label>Number of Weeks (1–12)</label>
+      <input type="number" name="weeks" min="1" max="12" value="4" required />
+    </div>
+    <button type="submit" class="btn">Create Recurring Bookings →</button>
+  </form>
+  <a href="/admin/dashboard" class="back">← Back to Dashboard</a>
+</div>
+</body>
+</html>

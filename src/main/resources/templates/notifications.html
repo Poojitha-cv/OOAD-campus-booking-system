@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>CampusBook — Notifications</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #05080f; --surface: #0d1220; --card: #101828;
+    --border: #1e2d45; --accent: #00d4ff; --accent2: #7c3aed;
+    --text: #e8f0fe; --muted: #64748b;
+    --success: #10b981; --warning: #f59e0b; --danger: #f43f5e; --purple: #a78bfa;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(124,58,237,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(5,8,15,0.85); backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 48px; height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+  .nav-logo-icon {
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .nav-brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; }
+  .nav-brand span { color: var(--accent); }
+  .nav-actions { display: flex; align-items: center; gap: 12px; }
+  .nav-link {
+    color: var(--accent); text-decoration: none; font-size: 13px;
+    padding: 6px 14px; border: 1px solid rgba(0,212,255,0.25); border-radius: 20px;
+    transition: background 0.2s;
+  }
+  .nav-link:hover { background: rgba(0,212,255,0.08); }
+  .nav-link.danger { color: var(--danger); border-color: rgba(244,63,94,0.25); }
+
+  main { max-width: 760px; margin: 0 auto; padding: 48px 24px; position: relative; z-index: 1; }
+  .page-title { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+  .page-title span { color: var(--accent2); }
+  .page-sub { color: var(--muted); font-size: 15px; margin-bottom: 36px; }
+
+  .empty-state {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 64px 32px; text-align: center;
+  }
+  .empty-icon { font-size: 3rem; margin-bottom: 16px; }
+  .empty-state p { color: var(--muted); }
+
+  .notif-item {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px 22px; margin-bottom: 12px;
+    display: flex; gap: 16px; align-items: flex-start;
+    border-left: 4px solid var(--border); transition: box-shadow 0.2s;
+  }
+  .notif-item:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+  .notif-item.CONFIRMED { border-left-color: var(--success); }
+  .notif-item.CANCELLED  { border-left-color: var(--danger); }
+  .notif-item.PROMOTED   { border-left-color: var(--purple); }
+  .notif-item.CONFLICT   { border-left-color: var(--warning); }
+
+  .notif-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 2px; }
+  .notif-body { flex: 1; }
+  .notif-message { font-size: 14px; line-height: 1.6; color: var(--text); }
+  .notif-time { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  .type-badge {
+    border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.5px; flex-shrink: 0; margin-top: 2px; white-space: nowrap;
+  }
+  .badge-CONFIRMED { background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
+  .badge-CANCELLED  { background: rgba(244,63,94,0.12); color: var(--danger); border: 1px solid rgba(244,63,94,0.25); }
+  .badge-PROMOTED   { background: rgba(167,139,250,0.12); color: var(--purple); border: 1px solid rgba(167,139,250,0.25); }
+  .badge-CONFLICT   { background: rgba(245,158,11,0.12); color: var(--warning); border: 1px solid rgba(245,158,11,0.25); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="/resource/all">
+    <div class="nav-logo-icon">🏛️</div>
+    <div class="nav-brand">Campus<span>Book</span></div>
+  </a>
+  <div class="nav-actions">
+    <a href="/booking/my" class="nav-link">📋 My Bookings</a>
+    <a href="/waitlist/my" class="nav-link">⏳ Waitlist</a>
+    <a href="/resource/all" class="nav-link">Browse Resources</a>
+    <a href="/logout" class="nav-link danger">Logout</a>
+  </div>
+</nav>
+
+<main>
+  <div class="page-title">🔔 <span>Notifications</span></div>
+  <div class="page-sub">All alerts for your bookings, cancellations, waitlist promotions, and conflicts.</div>
+
+  <div class="empty-state" th:if="${#lists.isEmpty(notifications)}">
+    <div class="empty-icon">🔕</div>
+    <p>No notifications yet. Make your first booking to get started!</p>
+  </div>
+
+  <div th:each="n : ${notifications}"
+       th:classappend="${n.type}"
+       class="notif-item">
+
+    <div class="notif-icon"
+         th:text="${n.type == 'CONFIRMED'} ? '✅' :
+                   (n.type == 'CANCELLED'  ? '❌' :
+                   (n.type == 'PROMOTED'   ? '🎉' : '⚠️'))">
+    </div>
+
+    <div class="notif-body">
+      <div class="notif-message" th:text="${n.message}"></div>
+      <div class="notif-time" th:text="${#temporals.format(n.createdAt, 'dd MMM yyyy, HH:mm')}"></div>
+    </div>
+
+    <span class="type-badge"
+          th:classappend="'badge-' + ${n.type}"
+          th:text="${n.type}">
+    </span>
+  </div>
+</main>
+
+</body>
+</html>

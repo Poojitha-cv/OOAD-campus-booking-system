@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>CampusBook — Choose Resolution Strategy</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #05080f; --surface: #0d1220; --card: #101828;
+    --border: #1e2d45; --accent: #00d4ff; --accent2: #7c3aed;
+    --text: #e8f0fe; --muted: #64748b;
+    --success: #10b981; --warning: #f59e0b; --danger: #f43f5e;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif;
+         min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+         justify-content: center; padding: 32px; }
+  body::before { content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 60% 60% at 50% 30%, rgba(124,58,237,0.05) 0%, transparent 65%);
+    pointer-events: none; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+          padding: 48px 44px; max-width: 560px; width: 100%; position: relative; z-index: 1; }
+
+  h1 { font-family: 'Syne', sans-serif; font-size: 1.7rem; font-weight: 800; margin-bottom: 6px; }
+  h1 span { color: var(--accent2); }
+  .sub { color: var(--muted); font-size: 14px; margin-bottom: 32px; line-height: 1.6; }
+
+  .strategy-option { background: var(--card); border: 1px solid var(--border);
+                     border-radius: 14px; padding: 20px 22px; margin-bottom: 14px;
+                     cursor: pointer; transition: border-color 0.2s; }
+  .strategy-option:hover { border-color: var(--accent); }
+  .strategy-option h3 { font-family: 'Syne', sans-serif; font-size: 1rem;
+                         font-weight: 700; margin-bottom: 6px; }
+  .strategy-option p { color: var(--muted); font-size: 13px; line-height: 1.5; }
+  .tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px;
+         font-weight: 600; margin-bottom: 8px; }
+  .tag-fcfs     { background: rgba(16,185,129,0.1); color: var(--success); border: 1px solid rgba(16,185,129,0.2); }
+  .tag-priority { background: rgba(245,158,11,0.1); color: var(--warning); border: 1px solid rgba(245,158,11,0.2); }
+  .tag-alt      { background: rgba(0,212,255,0.1);  color: var(--accent);  border: 1px solid rgba(0,212,255,0.2); }
+
+  .btn-strategy {
+    width: 100%; padding: 13px;
+    border: none; border-radius: 10px; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px;
+    margin-top: 8px; transition: opacity 0.2s;
+  }
+  .btn-fcfs     { background: linear-gradient(135deg, var(--success), #059669); color: #fff; }
+  .btn-priority { background: linear-gradient(135deg, var(--warning), #d97706); color: #fff; }
+  .btn-alt      { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #05080f; }
+  .btn-strategy:hover { opacity: 0.9; }
+
+  .back { display: block; text-align: center; margin-top: 20px;
+          color: var(--muted); font-size: 13px; text-decoration: none; }
+  .back:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Choose <span>Resolution Strategy</span></h1>
+  <p class="sub">Select how the system should handle the waitlist after your booking is cancelled. The promoted user will be notified automatically.</p>
+
+  <!-- Strategy 1: FCFS -->
+  <div class="strategy-option">
+    <div class="tag tag-fcfs">Strategy 1</div>
+    <h3>⏱ First Come, First Served (FCFS)</h3>
+    <p>The person who joined the waitlist earliest gets promoted. Fair and simple.</p>
+    <form th:action="@{/waitlist/resolve/{id}(id=${bookingId})}" method="post">
+      <input type="hidden" name="strategy" value="FCFS" />
+      <button type="submit" class="btn-strategy btn-fcfs">Apply FCFS →</button>
+    </form>
+  </div>
+
+  <!-- Strategy 2: Priority -->
+  <div class="strategy-option">
+    <div class="tag tag-priority">Strategy 2</div>
+    <h3>🎓 Priority-Based (Faculty First)</h3>
+    <p>Faculty are promoted first, then Admins, then Students — regardless of queue order.</p>
+    <form th:action="@{/waitlist/resolve/{id}(id=${bookingId})}" method="post">
+      <input type="hidden" name="strategy" value="PRIORITY" />
+      <button type="submit" class="btn-strategy btn-priority">Apply Priority →</button>
+    </form>
+  </div>
+
+  <!-- Strategy 3: Alternate Room -->
+  <div class="strategy-option">
+    <div class="tag tag-alt">Strategy 3</div>
+    <h3>🏛 Alternate Room Suggestion</h3>
+    <p>If no one in the waitlist fits the freed slot, the system suggests a different resource of the same type that is available.</p>
+    <form th:action="@{/waitlist/resolve/{id}(id=${bookingId})}" method="post">
+      <input type="hidden" name="strategy" value="ALTERNATE" />
+      <button type="submit" class="btn-strategy btn-alt">Apply Alternate Room →</button>
+    </form>
+  </div>
+
+  <a href="/booking/my" class="back">← Back to My Bookings</a>
+</div>
+</body>
+</html>

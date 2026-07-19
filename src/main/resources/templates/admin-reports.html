@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>CampusBook — Reports</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #05080f; --surface: #0d1220; --card: #101828;
+    --border: #1e2d45; --accent: #00d4ff; --accent2: #7c3aed;
+    --text: #e8f0fe; --muted: #64748b;
+    --success: #10b981; --warning: #f59e0b; --danger: #f43f5e;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(5,8,15,0.9); backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px; height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; }
+  .brand span { color: var(--accent); }
+  .nav-links a { color: var(--accent); text-decoration: none; font-size: 13px;
+    padding: 6px 14px; border: 1px solid rgba(0,212,255,0.25); border-radius: 20px; }
+  main { max-width: 1000px; margin: 0 auto; padding: 48px 24px; }
+  h1 { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
+  h1 span { color: var(--accent2); }
+  .sub { color: var(--muted); font-size: 14px; margin-bottom: 36px; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 40px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+  .stat-num { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; }
+  .stat-label { color: var(--muted); font-size: 12px; margin-top: 4px; }
+
+  .section { margin-bottom: 44px; }
+  .section-title { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700;
+    margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; padding: 10px 14px; font-size: 11px; text-transform: uppercase;
+       letter-spacing: 0.8px; color: var(--muted); background: var(--surface);
+       border-bottom: 1px solid var(--border); }
+  td { padding: 12px 14px; font-size: 14px; border-bottom: 1px solid rgba(30,45,69,0.5); }
+  .pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .pill-CONFIRMED { background: rgba(16,185,129,0.12); color: var(--success); }
+  .pill-CONFLICT  { background: rgba(245,158,11,0.12); color: var(--warning); }
+  .pill-CANCELLED { background: rgba(244,63,94,0.12); color: var(--danger); }
+  .pill-PENDING   { background: rgba(100,116,139,0.12); color: var(--muted); }
+</style>
+</head>
+<body>
+<nav>
+  <div class="brand">Campus<span>Book</span></div>
+  <div class="nav-links">
+    <a th:href="@{/admin/dashboard}">← Dashboard</a>
+  </div>
+</nav>
+
+<main>
+  <h1>System <span>Reports</span></h1>
+  <p class="sub">Booking statistics, conflict analysis, and resource utilization.</p>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-card"><div class="stat-num" style="color:var(--accent)" th:text="${totalBookings}">0</div><div class="stat-label">Total Bookings</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--success)" th:text="${confirmedCount}">0</div><div class="stat-label">Confirmed</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--warning)" th:text="${conflictCount}">0</div><div class="stat-label">Conflicts</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--danger)" th:text="${cancelledCount}">0</div><div class="stat-label">Cancelled</div></div>
+  </div>
+
+  <!-- Bookings per Resource -->
+  <div class="section">
+    <div class="section-title">📊 Bookings Per Resource</div>
+    <table>
+      <thead><tr><th>Resource</th><th>Total Bookings</th></tr></thead>
+      <tbody>
+        <tr th:each="entry : ${bookingsPerRes}">
+          <td th:text="${entry.key}"></td>
+          <td th:text="${entry.value}"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- All Conflict Bookings -->
+  <div class="section">
+    <div class="section-title">⚡ Conflict Bookings</div>
+    <div style="color:var(--muted);font-size:14px;padding:20px;text-align:center"
+         th:if="${#lists.isEmpty(conflictBookings)}">No conflicts found.</div>
+    <table th:if="${!#lists.isEmpty(conflictBookings)}">
+      <thead><tr><th>ID</th><th>User</th><th>Resource</th><th>Start</th><th>End</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr th:each="b : ${conflictBookings}">
+          <td th:text="${b.id}"></td>
+          <td th:text="${b.user.name}"></td>
+          <td th:text="${b.resource.name}"></td>
+          <td th:text="${b.startTime}"></td>
+          <td th:text="${b.endTime}"></td>
+          <td><span class="pill pill-CONFLICT">CONFLICT</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Full Booking Log -->
+  <div class="section">
+    <div class="section-title">📋 Full Booking Log</div>
+    <table>
+      <thead><tr><th>ID</th><th>User</th><th>Role</th><th>Resource</th><th>Start</th><th>End</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr th:each="b : ${allBookings}">
+          <td th:text="${b.id}"></td>
+          <td th:text="${b.user.name}"></td>
+          <td th:text="${b.user.role}"></td>
+          <td th:text="${b.resource.name}"></td>
+          <td th:text="${b.startTime}"></td>
+          <td th:text="${b.endTime}"></td>
+          <td><span class="pill" th:classappend="'pill-' + ${b.status}" th:text="${b.status}"></span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>

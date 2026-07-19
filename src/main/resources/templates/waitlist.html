@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>CampusBook — My Waitlist</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #05080f; --surface: #0d1220; --card: #101828;
+    --border: #1e2d45; --accent: #00d4ff; --accent2: #7c3aed;
+    --text: #e8f0fe; --muted: #64748b; --warning: #f59e0b; --danger: #f43f5e;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 70% 40% at 50% 0%, rgba(245,158,11,0.04) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(5,8,15,0.85); backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 48px; height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+  .nav-logo-icon {
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .nav-brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; }
+  .nav-brand span { color: var(--accent); }
+  .nav-actions { display: flex; align-items: center; gap: 12px; }
+  .nav-link {
+    color: var(--accent); text-decoration: none; font-size: 13px;
+    padding: 6px 14px; border: 1px solid rgba(0,212,255,0.25); border-radius: 20px;
+    transition: background 0.2s;
+  }
+  .nav-link:hover { background: rgba(0,212,255,0.08); }
+  .nav-link.danger { color: var(--danger); border-color: rgba(244,63,94,0.25); }
+
+  main { max-width: 900px; margin: 0 auto; padding: 48px 24px; position: relative; z-index: 1; }
+  .page-title { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+  .page-title span { color: var(--warning); }
+  .page-sub { color: var(--muted); font-size: 15px; margin-bottom: 36px; }
+
+  .empty-state {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 64px 32px; text-align: center;
+  }
+  .empty-icon { font-size: 3rem; margin-bottom: 16px; }
+  .empty-state p { color: var(--muted); margin-bottom: 24px; }
+  .btn-accent {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #05080f; font-weight: 700; padding: 10px 24px;
+    border-radius: 10px; text-decoration: none; font-size: 14px;
+  }
+
+  .waitlist-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 24px 28px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 24px;
+    border-left: 4px solid var(--warning); transition: box-shadow 0.2s;
+  }
+  .waitlist-card:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.3); }
+
+  .position-badge {
+    background: rgba(245,158,11,0.15); border: 2px solid rgba(245,158,11,0.4);
+    color: var(--warning); width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800; flex-shrink: 0;
+  }
+
+  .card-info { flex: 1; }
+  .card-info h3 { font-family: 'Syne', sans-serif; font-size: 1.05rem; margin-bottom: 8px; }
+  .card-meta { display: flex; gap: 20px; flex-wrap: wrap; }
+  .meta-item { font-size: 13px; color: var(--muted); }
+  .meta-item span { color: var(--text); font-weight: 500; }
+  .added-time { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+  .status-pill {
+    background: rgba(245,158,11,0.12); color: var(--warning);
+    border: 1px solid rgba(245,158,11,0.3); border-radius: 20px;
+    padding: 4px 14px; font-size: 12px; font-weight: 700;
+  }
+
+  .info-box {
+    background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.15);
+    border-radius: 12px; padding: 16px 20px; margin-top: 24px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .info-box p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="/resource/all">
+    <div class="nav-logo-icon">🏛️</div>
+    <div class="nav-brand">Campus<span>Book</span></div>
+  </a>
+  <div class="nav-actions">
+    <a href="/booking/my" class="nav-link">📋 My Bookings</a>
+    <a href="/notifications" class="nav-link">🔔 Alerts</a>
+    <a href="/resource/all" class="nav-link">Browse Resources</a>
+    <a href="/logout" class="nav-link danger">Logout</a>
+  </div>
+</nav>
+
+<main>
+  <div class="page-title">My <span>Waitlist</span></div>
+  <div class="page-sub">You'll be automatically promoted and notified when a slot opens up.</div>
+
+  <div class="empty-state" th:if="${#lists.isEmpty(entries)}">
+    <div class="empty-icon">🎉</div>
+    <p>You're not waitlisted for anything — all your bookings are confirmed!</p>
+    <a href="/resource/all" class="btn-accent">Browse Resources →</a>
+  </div>
+
+  <div th:each="entry : ${entries}" class="waitlist-card">
+    <div class="position-badge" th:text="'#' + ${entry.position}"></div>
+
+    <div class="card-info">
+      <h3 th:text="${entry.resource.name}">Resource</h3>
+      <div class="card-meta">
+        <div class="meta-item">📅 <span th:text="${#temporals.format(entry.startTime, 'dd MMM yyyy, HH:mm')}"></span></div>
+        <div class="meta-item">⏰ to <span th:text="${#temporals.format(entry.endTime, 'HH:mm')}"></span></div>
+        <div class="meta-item">🏷️ <span th:text="${entry.resource.type}"></span></div>
+      </div>
+      <div class="added-time" th:text="'Waitlisted since: ' + ${#temporals.format(entry.addedAt, 'dd MMM yyyy, HH:mm')}"></div>
+    </div>
+
+    <span class="status-pill">Waitlisted</span>
+  </div>
+
+  <div class="info-box" th:if="${!#lists.isEmpty(entries)}">
+    <span>ℹ️</span>
+    <p>Queue order is First Come, First Served. When someone cancels, you are automatically promoted and notified via the Alerts page.</p>
+  </div>
+</main>
+
+</body>
+</html>

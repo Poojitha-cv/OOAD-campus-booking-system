@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>CampusBook — Feedback Submitted</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --bg: #05080f; --surface: #0d1220; --border: #1e2d45;
+          --accent: #00d4ff; --accent2: #7c3aed; --text: #e8f0fe;
+          --muted: #64748b; --success: #10b981; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif;
+         min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 32px; }
+  body::before { content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(16,185,129,0.05) 0%, transparent 65%);
+    pointer-events: none; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+          padding: 56px 48px; max-width: 480px; width: 100%; text-align: center;
+          position: relative; z-index: 1; }
+  .icon { font-size: 4rem; margin-bottom: 20px; }
+  h1 { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; margin-bottom: 12px; }
+  .msg { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2);
+         border-radius: 12px; padding: 14px 18px; color: var(--success);
+         font-size: 14px; margin-bottom: 32px; }
+  .btn-group { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2));
+                 color: #05080f; font-weight: 700; padding: 12px 28px;
+                 border-radius: 10px; text-decoration: none; font-size: 14px; }
+  .btn-ghost { background: transparent; color: var(--accent);
+               border: 1px solid rgba(0,212,255,0.3); padding: 11px 28px;
+               border-radius: 10px; text-decoration: none; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">⭐</div>
+  <h1>Feedback Received!</h1>
+  <div class="msg" th:text="${message}">Thank you for your feedback!</div>
+  <div class="btn-group">
+    <a href="/booking/my" class="btn-primary">📋 My Bookings</a>
+    <a href="/resource/all" class="btn-ghost">Browse Resources</a>
+  </div>
+</div>
+</body>
+</html>

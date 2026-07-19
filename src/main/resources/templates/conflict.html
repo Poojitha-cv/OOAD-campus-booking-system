@@ -67,7 +67,6 @@
     z-index: 1;
   }
 
-  /* Alert header */
   .alert-header {
     text-align: center;
     margin-bottom: 48px;
@@ -104,7 +103,6 @@
 
   .alert-header p { color: var(--muted); font-size: 15px; }
 
-  /* VS comparison */
   .versus-wrap {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
@@ -208,7 +206,6 @@
     white-space: nowrap;
   }
 
-  /* VS badge */
   .vs-badge {
     width: 52px;
     height: 52px;
@@ -225,7 +222,6 @@
     flex-shrink: 0;
   }
 
-  /* Result card */
   .result-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -277,7 +273,6 @@
     font-weight: 500;
   }
 
-  /* Actions */
   .actions {
     display: flex;
     gap: 12px;
@@ -331,6 +326,12 @@
     <div class="nav-logo-icon">🏛️</div>
     <div class="nav-brand">Campus<span>Book</span></div>
   </a>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <a href="/booking/my" style="color:var(--accent);text-decoration:none;font-size:14px;padding:6px 14px;border:1px solid rgba(0,212,255,0.3);border-radius:20px;">📋 My Bookings</a>
+    <a href="/waitlist/my" style="color:var(--accent);text-decoration:none;font-size:14px;padding:6px 14px;border:1px solid rgba(0,212,255,0.3);border-radius:20px;">⏳ My Waitlist</a>
+    <a href="/notifications" style="color:var(--accent);text-decoration:none;font-size:14px;padding:6px 14px;border:1px solid rgba(0,212,255,0.3);border-radius:20px;">🔔 Alerts</a>
+    <a href="/logout" style="color:#f43f5e;text-decoration:none;font-size:14px;padding:6px 14px;border:1px solid rgba(244,63,94,0.3);border-radius:20px;">Logout</a>
+  </div>
 </nav>
 
 <main>
@@ -354,6 +355,16 @@
       <div class="card-label">
         <div class="label-dot"></div>
         Existing Booking
+      </div>
+
+      <div class="time-block">
+        <div class="time-label">Resource</div>
+        <div class="time-val" th:text="${conflict.existingBooking.resource.name}">—</div>
+      </div>
+
+      <div class="time-block">
+        <div class="time-label">Booked By</div>
+        <div class="time-val" th:text="${conflict.existingBooking.user.name}">—</div>
       </div>
 
       <div class="time-block">
@@ -382,6 +393,16 @@
       <div class="card-label">
         <div class="label-dot"></div>
         Your Booking
+      </div>
+
+      <div class="time-block">
+        <div class="time-label">Resource</div>
+        <div class="time-val" th:text="${conflict.newBooking.resource.name}">—</div>
+      </div>
+
+      <div class="time-block">
+        <div class="time-label">Booked By</div>
+        <div class="time-val" th:text="${conflict.newBooking.user.name}">—</div>
       </div>
 
       <div class="time-block">
@@ -422,7 +443,8 @@
 
   <div class="actions">
     <a href="/resource/all" class="btn-primary">Try Another Slot →</a>
-    <a href="/resource/all" class="btn-ghost">Back to Resources</a>
+    <a href="/waitlist/my" class="btn-ghost">View My Waitlist</a>
+    <a href="/notifications" class="btn-ghost">🔔 Notifications</a>
   </div>
 
 </main>

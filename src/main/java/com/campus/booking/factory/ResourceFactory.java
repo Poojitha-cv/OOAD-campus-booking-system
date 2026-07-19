@@ -2,18 +2,23 @@ package com.campus.booking.factory;
 
 import com.campus.booking.model.Resource;
 
-// Factory Method Pattern entry point
+/**
+ * Factory Method Pattern — Client
+ * Delegates resource creation to the appropriate concrete creator.
+ */
 public class ResourceFactory {
 
-    private static final java.util.Set<String> VALID_TYPES =
-        java.util.Set.of("LAB", "ROOM", "AUDITORIUM", "SEMINAR_HALL", "SPORTS");
-
     public static Resource createResource(String name, String type) {
-        String upperType = type.toUpperCase();
-        if (!VALID_TYPES.contains(upperType)) {
-            throw new IllegalArgumentException("Invalid resource type: " + type);
-        }
-        ResourceCreator creator = new ConcreteResourceCreator(upperType);
+        ResourceCreator creator = getCreator(type.toUpperCase());
         return creator.createResource(name);
+    }
+
+    private static ResourceCreator getCreator(String type) {
+        switch (type) {
+            case "LAB":         return new LabResourceCreator();
+            case "ROOM":        return new RoomResourceCreator();
+            case "AUDITORIUM":  return new AuditoriumResourceCreator();
+            default: throw new IllegalArgumentException("Unknown resource type: " + type);
+        }
     }
 }
